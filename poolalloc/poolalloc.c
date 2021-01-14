@@ -12,26 +12,34 @@
 
 
 int previousA=0;
-/*
-   a pool-based allocator that uses doubly-linked lists to track
-   allocated and free blocks
- */
 
-/* create and initialize a memory pool of the required size */
-/* use malloc() or calloc() to obtain this initial pool of memory from the system */
+
+
+/*
+create a pool based allocator. This uses a double linked list(dbll.c) to track allocated blocks and free
+them when needed
+*/
+
+
+/*
+In memory_pool we're creating a memory pool of the required size.
+*/
 struct memory_pool *mpool_create(size_t size){
 
 	struct memory_pool *pool= malloc(sizeof(struct memory_pool));
-	 /* set start to memory obtained from malloc */
-	 /* set size to size */
+
+
 	if(pool==NULL) return NULL;
 	pool->start = (char *)malloc(size);
 
 	pool->size=size;
 
 
- /* create a doubly-linked list to track allocations */
-  /* create a doubly-linked list to track free blocks */
+
+  
+  /*
+  creating two linked lists to track allocations and free blocks
+  */
 	pool->alloc_list= dbll_create();
 	pool->free_list= dbll_create();
 
@@ -43,16 +51,18 @@ struct memory_pool *mpool_create(size_t size){
 	alloc->size=size;
 	alloc->offset=0;
 
-	dbll_append(pool->free_list, alloc);
-  /* create a free block of memory for the entire pool and place it on the free_list */
+	dbll_append(pool->free_list, alloc); // creating a free block of memory for the entire pool and then we're adding it on the free list
 
-  /* return memory pool object */
+
 
   return pool;
 }
 
-/* ``destroy'' the memory pool by freeing it and all associated data structures */
-/* this includes the alloc_list and the free_list as well */
+
+
+/*
+This destroys and memory pool and all the associated data structures.
+*/
 void mpool_destroy(struct memory_pool *p){
 
 	//loop through nodes and free the alloc_info objects
@@ -73,28 +83,20 @@ void mpool_destroy(struct memory_pool *p){
 			}
 	}
 	
-	dbll_free(p->alloc_list);
-	dbll_free(p->free_list);
+	dbll_free(p->alloc_list); 
+	dbll_free(p->free_list); 
 	free(p->start);
 	free(p);
 
-  /* make sure the allocated list is empty (i.e. everything has been freed) */
-  /* free the alloc_list dbll */
-  /* free the free_list dbll  */
-  /* free the memory pool structure */
+  
 }
 
 
-/* allocate a chunk of memory out of the free pool */
 
-/* Return NULL if there is not enough memory in the free pool */
 
-/* The address you return must be aligned to 1 (for size=1), 2 (for
-   size=2), 4 (for size=3,4), 8 (for size=5,6,7,8). For all other
-   sizes, align to 16.
+/*
+decideAllign returns an what the address should be aligned to. That is decided according to size we want to allocate.
 */
-
-
 int decideAllign(int a){
 	int b;
 
@@ -111,6 +113,15 @@ int decideAllign(int a){
 
 
 
+	/*
+	allocate a chunk of the memory pool and return address
+	*/
+
+	/*
+	in here we are looking for a suitable block to put our data in.
+	We search the free list for a suitable block that we can use. We are using the first fit approach.
+	If we can't find a suitable block we return null.
+	*/
 void *mpool_alloc(struct memory_pool *p, size_t size){
 
 	char* address=0;
@@ -221,33 +232,21 @@ void *mpool_alloc(struct memory_pool *p, size_t size){
 
 
 	return address;
-  /* check if there is enough memory for allocation of `size` (taking
-	 alignment into account) by checking the list of free blocks */
+	
+	
 
-  /* search the free list for a suitable block */
-  /* there are many strategies you can use: first fit (the first block that fits),
-	 best fit (the smallest block that fits), etc. */
-
-  /* if no suitable block can be found, return NULL */
-
-  /* if found, create an alloc_info node, store start of new region
-	 into offset, set size to allocation size (take alignment into
-	 account!), set free to null */
-
-  /* add the new alloc_info node to the memory pool's allocated
-	 list */
-
-  /* return pointer to allocated region*/
 
 
 
 }
 
-/* Free a chunk of memory out of the pool */
-/* This moves the chunk of memory to the free list. */
-/* You may want to coalesce free blocks [i.e. combine two free blocks
-   that are are next to each other in the pool into one larger free
-   block. Note this requires that you keep the list of free blocks in order */
+
+   
+   
+   /*
+	Free chunk of memory from the pool. (and so it moves it to the free list)
+	Then we coalesce free blocks.
+   */
 void mpool_free(struct memory_pool *p, void *addr){
 
 	char* passed=  addr;
@@ -266,9 +265,7 @@ void mpool_free(struct memory_pool *p, void *addr){
 
 	}
 
-		  /* search the alloc_list for the block */
-		  /* move it to the free_list */
-		  /* coalesce the free_list */
+	
 
 		int check=0;
 		if(p->free_list->first!=NULL){ //looping the free list
